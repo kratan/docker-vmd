@@ -1,9 +1,13 @@
 #!/bin/bash
+#set resolution of virtual screen, set default to 4k
+if [ -z "$SCREEN_RESOLUTION" ]; then
+    SCREEN_RESOLUTION=4096x2160
+fi
 
 #PCI BUS Stuff, using nvidia-smi to support BusIDs
 rm -Rf /etc/X11/xorg.conf
 MAIN_ARRAY=( `nvidia-smi --query-gpu=gpu_bus_id --format=csv,noheader` )
-nvidia-xconfig --virtual=4096x2160 --use-display-device=none --no-busid  -o /etc/X11/xorg.conf
+nvidia-xconfig --virtual=${SCREEN_RESOLUTION} --use-display-device=none --no-busid  -o /etc/X11/xorg.conf
 
 #Check Occurences
 FILE_OCCURENCES=$(cat /etc/X11/xorg.conf | grep -o "NVIDIA Corporation" | wc -l)
