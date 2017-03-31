@@ -101,5 +101,5 @@ openssl req -new -x509 -days 365 -nodes \
 chmod +r /home/${USERNAME}/gpunode.crt
 chmod +r /home/${USERNAME}/gpunode.key
 
-#Run Xpra with postAtom
+#Run Xpra with vmd
 su - ${USERNAME} -c 'Xorg :11 -keeptty -novtswitch -sharevts vt'${USEVT}' & (XPRA_PASSWORD='${XPRA_PASSWORD}' xpra start :11 --bind-tcp=0.0.0.0:'${XPRAPORT}' --auth=env --ssl=on --ssl-cert=/home/'${USERNAME}'/gpunode.crt --ssl-key=/home/'${USERNAME}'/gpunode.key --no-clipboard --no-pulseaudio --start-child="vmd" --exit-with-child --no-printing --no-speaker --no-cursors --dbus-control=no --dbus-proxy=no --use-display --no-daemon)'
