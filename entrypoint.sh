@@ -7,7 +7,7 @@ fi
 #PCI BUS Stuff, using nvidia-smi to support BusIDs
 rm -Rf /etc/X11/xorg.conf
 MAIN_ARRAY=( `nvidia-smi --query-gpu=gpu_bus_id --format=csv,noheader` )
-nvidia-xconfig --virtual=${SCREEN_RESOLUTION} --use-display-device=none --no-busid  -o /etc/X11/xorg.conf
+nvidia-xconfig --virtual=${SCREEN_RESOLUTION} --no-busid  -o /etc/X11/xorg.conf
 
 #Check Occurences
 FILE_OCCURENCES=$(cat /etc/X11/xorg.conf | grep -o "NVIDIA Corporation" | wc -l)
@@ -51,6 +51,12 @@ do
 done
 
 
+#3D Stereo Fix, disable composite
+#echo 'Section "Extensions"' >> /etc/X11/xorg.conf
+#echo '    Option "Composite" "Disable"' >> /etc/X11/xorg.conf
+#echo 'EndSection' >> /etc/X11/xorg.conf
+
+
 #Add/CheckPass for User + Port
 if [ -z "$XPRA_PASSWORD" ]; then
     XPRA_PASSWORD=testgeheim
@@ -78,19 +84,24 @@ make install
 adduser ${USERNAME}
 
 #Get TTYs
-AVAILABLE_TTY=($(ls -d /dev/tty*[0-9]*))
-TTY_COUNT=${#AVAILABLE_TTY[@]}
-if [ $TTY_COUNT -ne 1 ]; then
-        echo "No TTY found or multiple TTYs found for Xorg. Please run container with one free TTY, e.g. --device=/dev/tty60"
-        exit
-fi
+#AVAILABLE_TTY=($(ls -d /dev/tty*[0-9]*))
+#TTY_COUNT=${#AVAILABLE_TTY[@]}
+#if [ $TTY_COUNT -ne 1 ]; then
+#        echo "No TTY found or multiple TTYs found for Xorg. Please run container with one free TTY, e.g. --device=/dev/tty60"
+#        exit
+#fi
 
 #Manipulate Strings and export
 USEVT=$(echo "${AVAILABLE_TTY[0]:8}")
+USEVT=60
 
 #UserStuff + Adduser to xpra group
 chown ${USERNAME} /dev/tty${USEVT}
-adduser ${USERNAME} xpra
+usermod -a -G xpra ${USERNAME}
+mkdir -p /var/run/user/1000/xpra
+chown -R ${USERNAME}:xpra /var/run/user/1000/xpra
+mkdir -p /var/run/xpra
+chown -R ${USERNAME}:xpra /var/run/xpra
 
 #remove suid from xorg
 chmod -s /usr/bin/Xorg
@@ -105,6 +116,10 @@ openssl req -new -x509 -days 365 -nodes \
 chmod +r /home/${USERNAME}/gpunode.crt
 chmod +r /home/${USERNAME}/gpunode.key
 
+#dbus fix
+dbus-uuidgen > /etc/machine-id
+
 #Run Xpra with vmd
 su - ${USERNAME} -c 'Xorg :11 -keeptty -novtswitch -sharevts vt'${USEVT}' & (XPRA_PASSWORD='${XPRA_PASSWORD}' xpra start :11 --bind-tcp=0.0.0.0:'${XPRAPORT}' --auth=env --ssl=on --ssl-cert=/home/'${USERNAME}'/gpunode.crt --ssl-key=/home/'${USERNAME}'/gpunode.key --no-clipboard --no-pulseaudio --start-child="vmd" --exit-with-child --no-printing --no-speaker --no-cursors --dbus-control=no --dbus-proxy=no --use-display --no-daemon)'
 #su - ${USERNAME} -c 'Xorg :11 -keeptty -novtswitch -sharevts vt'${USEVT}' & (XPRA_PASSWORD='${XPRA_PASSWORD}' xpra start :11 --bind-tcp=0.0.0.0:'${XPRAPORT}' --auth=env --no-clipboard --no-pulseaudio --start-child="vmd" --exit-with-child --no-printing --no-speaker --no-cursors --dbus-control=no --dbus-proxy=no --use-display --no-daemon)'
+
