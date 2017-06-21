@@ -75,6 +75,11 @@ RUN curl -o /tmp/vmd-${VMD_VERSION}.tar.gz ${VMD_INSTALL} \
 
 #RUN curl -SL $VMD_INSTALL | tar xJC /
 
+#Download Demos
+RUN curl -o /tmp/vmd-demos.tar.gz http://www.ks.uiuc.edu/Training/Tutorials/vmd/vmd-tutorial-files.tar.gz \
+	&& mkdir /vmd-demos \
+        && tar xzfv /tmp/vmd-demos.tar.gz -C /vmd-demos
+
 RUN yum clean all && rm -Rf /tmp/*
 
 COPY entrypoint.sh /entrypoint.sh
