@@ -7,7 +7,7 @@ fi
 #PCI BUS Stuff, using nvidia-smi to support BusIDs
 rm -Rf /etc/X11/xorg.conf
 MAIN_ARRAY=( `nvidia-smi --query-gpu=gpu_bus_id --format=csv,noheader` )
-nvidia-xconfig --virtual=${SCREEN_RESOLUTION} --no-busid  -o /etc/X11/xorg.conf
+nvidia-xconfig --virtual=${SCREEN_RESOLUTION} --no-busid --mode-list=4096x2160 -o /etc/X11/xorg.conf
 
 #Check Occurences
 FILE_OCCURENCES=$(cat /etc/X11/xorg.conf | grep -o "NVIDIA Corporation" | wc -l)
@@ -125,6 +125,6 @@ chmod +r /home/${TARGET_USER}/gpunode.key
 dbus-uuidgen > /etc/machine-id
 
 #Run Xpra with vmd
-su - ${TARGET_USER} -c 'Xorg :11 -keeptty -novtswitch -sharevts vt'${USEVT}' & (XPRA_PASSWORD='${XPRA_PASSWORD}' xpra start :11 --bind-tcp=0.0.0.0:'${XPRAPORT}' --auth=env --ssl=on --ssl-cert=/home/'${TARGET_USER}'/gpunode.crt --ssl-key=/home/'${TARGET_USER}'/gpunode.key --no-clipboard --no-pulseaudio --start-child="vmd" --exit-with-child --no-printing --no-speaker --no-cursors --dbus-control=no --dbus-proxy=no --use-display --no-daemon)'
+su - ${TARGET_USER} -c 'Xorg :0 -keeptty -novtswitch -sharevts vt'${USEVT}' & (XPRA_PASSWORD='${XPRA_PASSWORD}' xpra start :0 --bind-tcp=0.0.0.0:'${XPRAPORT}' --auth=env --ssl=on --ssl-cert=/home/'${TARGET_USER}'/gpunode.crt --ssl-key=/home/'${TARGET_USER}'/gpunode.key --no-clipboard --no-pulseaudio --start-child="vmd" --exit-with-child --no-printing --no-speaker --no-cursors --dbus-control=no --dbus-proxy=no --use-display --no-daemon)'
 #su - ${USERNAME} -c 'Xorg :11 -keeptty -novtswitch -sharevts vt'${USEVT}' & (XPRA_PASSWORD='${XPRA_PASSWORD}' xpra start :11 --bind-tcp=0.0.0.0:'${XPRAPORT}' --auth=env --no-clipboard --no-pulseaudio --start-child="vmd" --exit-with-child --no-printing --no-speaker --no-cursors --dbus-control=no --dbus-proxy=no --use-display --no-daemon)'
 
